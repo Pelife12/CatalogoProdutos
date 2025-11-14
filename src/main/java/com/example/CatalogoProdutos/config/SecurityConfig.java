@@ -24,7 +24,8 @@ public class SecurityConfig {
                                 "/imagens/**",
                                 "/doces/**",
                                 "/*.png",
-                                "/*.jpg"
+                                "/*.jpg",
+                                "/sobre"
                         ).permitAll()
 
                         .requestMatchers(

@@ -51,4 +51,9 @@ public class LoginController {
     public String redirecionarParaIndex() {
         return "redirect:/index";
     }
+
+    @GetMapping("/sobre")
+    public String paginaSaibaMais() {
+        return "saiba_mais";
+    }
 }
