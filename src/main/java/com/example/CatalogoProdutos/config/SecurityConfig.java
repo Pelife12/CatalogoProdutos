@@ -18,13 +18,13 @@ public class SecurityConfig {
                                 "/",
                                 "/index",
                                 "/login",
+                                "/exportar/pdf",
                                 "/css/**",
                                 "/js/**",
                                 "/imagens/**",
                                 "/doces/**",
                                 "/*.png",
-                                "/*.jpg",
-                                "/uploads/**"
+                                "/*.jpg"
                         ).permitAll()
 
                         .requestMatchers(

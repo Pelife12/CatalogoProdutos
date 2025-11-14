@@ -19,200 +19,159 @@
 </head>
 <body class="font-sans">
 
-    <header class="bg-custom-pink py-4">
-        <div class="container mx-auto px-4 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <img src="/imagens/logotipo.png" alt="Logo Busnardo" class="h-8 md:h-10">
-                <span class="text-xl md:text-2xl font-semibold text-custom-pink-dark">Distribuidora Busnardo</span>
+<header class="bg-custom-pink py-4">
+    <div class="container mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <img src="/imagens/logotipo.png" alt="Logo Busnardo" class="h-8 md:h-10">
+            <span class="text-xl md:text-2xl font-semibold text-custom-pink-dark">Distribuidora Busnardo</span>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-6">
+            <a href="/index" class="text-gray-700 hover:text-gray-900 font-medium">Início</a>
+            <a href="/index" class="text-gray-700 hover:text-gray-900 font-medium">Catálogo</a>
+
+            <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
+                <a href="/cadastro-produto" class="text-gray-700 hover:text-gray-900 font-medium">Cadastrar Produto</a>
+                <a href="/perfil" class="text-gray-700 hover:text-gray-900 font-medium">Perfil</a>
             </div>
 
-            <nav class="hidden md:flex items-center space-x-6">
-                <a href="/index" class="text-gray-700 hover:text-gray-900 font-medium">Início</a>
-                <a href="/index" class="text-gray-700 hover:text-gray-900 font-medium">Catálogo</a>
+            <div sec:authorize="isAnonymous()" class="flex items-center space-x-6">
+                <a href="/login" class="text-gray-700 hover:text-gray-900 font-medium">Login</a>
+            </div>
+        </nav>
 
-                <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
-                    <a href="/cadastro-produto" class="text-gray-700 hover:text-gray-900 font-medium">Cadastrar Produto</a>
-                    <a href="/perfil" class="text-gray-700 hover:text-gray-900 font-medium">Perfil</a>
+        <div class="hidden md:flex items-center space-x-4">
+
+            <div class="relative">
+                <input type="text" placeholder="Search in site" class="pl-4 pr-10 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-6a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+
+            <div sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="text-gray-700 hover:text-gray-900 font-medium bg-transparent border-none p-0 cursor-pointer">
+                        Sair
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="bg-custom-pink py-12 md:py-24">
+    <div class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
+        <div class="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+            <h1 class="text-3xl md:text-5xl font-bold text-custom-pink-dark leading-tight mb-4">Bem-vindo a Distribuidora Busnardo</h1>
+            <p class="text-base md:text-lg text-gray-700 mb-6">
+                Descubra a nossa deliciosa variedade de doces, perfeita para qualquer ocasião.
+            </p>
+        </div>
+        <div class="md:w-1/2 flex justify-center md:justify-end">
+            <img src="logo-busnardo-3d.png" alt="Logo 3D Busnardo" class="max-w-xs md:max-w-md lg:max-w-lg shadow-2xl rounded-xl">
+        </div>
+    </div>
+</section>
+
+<section class="bg-white py-12">
+    <div class="container mx-auto px-4">
+        <div th:if="${successMessage}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+            <strong class="font-bold">Sucesso!</strong>
+            <span class="block sm:inline" th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+            <strong class="font-bold">Erro!</strong>
+            <span class="block sm:inline" th:text="${errorMessage}"></span>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center md:justify-between mb-8">
+            <div class="text-center md:text-left">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Nossos Doces</h2>
+                <p class="text-gray-600">Uma seleção irresistível de doces.</p>
+            </div>
+
+            <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                <button class="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors">Saiba Mais</button>
+
+                <a href="/exportar/pdf"
+                   class="px-6 py-2 rounded-full bg-black text-white hover:bg-gray-800 transition-colors">
+                    Exportar PDF
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" th:if="${not #lists.isEmpty(produtos)}">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col" th:each="produto : ${produtos}">
+                <img th:if="${produto.caminhoImagem != null}"
+                     th:src="@{${produto.caminhoImagem}}"
+                     alt="Imagem do Produto"
+                     class="w-full h-48 object-cover">
+                <div th:if="${produto.caminhoImagem == null}"
+                     class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-500">Sem Imagem</span>
                 </div>
-
-                <div sec:authorize="isAnonymous()" class="flex items-center space-x-6">
-                    <a href="/login" class="text-gray-700 hover:text-gray-900 font-medium">Login</a>
+                <div class="p-4 flex-grow">
+                    <h3 class="text-lg font-semibold text-gray-800" th:text="${produto.nome}">Nome do Produto</h3>
+                    <p class="text-sm text-gray-600" th:text="${produto.descricao}">Descrição do produto.</p>
+                    <p class="mt-2 text-xl font-bold text-pink-600"
+                       th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 0,00
+                    </p>
                 </div>
-            </nav>
-
-            <div class="hidden md:flex items-center space-x-4">
-
-                <div class="relative">
-                    <input type="text" placeholder="Search in site" class="pl-4 pr-10 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
-                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-6a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                </div>
-
-                <div sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post" class="inline">
-                        <button type="submit" class="text-gray-700 hover:text-gray-900 font-medium bg-transparent border-none p-0 cursor-pointer">
-                            Sair
+                <div sec:authorize="isAuthenticated()" class="flex justify-around p-3 bg-gray-50 border-t">
+                    <a th:href="@{/editar-produto/{id}(id=${produto.id})}"
+                       class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                        Editar
+                    </a>
+                    <form th:action="@{/excluir-produto/{id}(id=${produto.id})}"
+                          method="POST"
+                          onsubmit="return confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.');">
+                        <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors bg-transparent border-none">
+                            Excluir
                         </button>
                     </form>
                 </div>
             </div>
         </div>
-    </header>
 
-    <section class="bg-custom-pink py-12 md:py-24">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
-            <div class="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
-                <h1 class="text-3xl md:text-5xl font-bold text-custom-pink-dark leading-tight mb-4">Bem-vindo a Distribuidora Busnardo</h1>
-                <p class="text-base md:text-lg text-gray-700 mb-6">
-                    Descubra a nossa deliciosa variedade de doces, perfeita para qualquer ocasião.
-                </p>
-                <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start space-y-4 sm:space-y-0 sm:space-x-4">
-                    <input type="text" placeholder="Pesquise por doces..." class="w-full sm:w-auto px-4 py-2 rounded-full border border-gray-300">
-                    <button class="w-full sm:w-auto px-6 py-2 rounded-full border border-pink-500 text-pink-500 hover:bg-pink-100 transition-colors">Fale Conosco</button>
-                    <button class="w-full sm:w-auto px-6 py-2 rounded-full bg-black text-white hover:bg-gray-800 transition-colors">Ver Catálogo</button>
-                </div>
-            </div>
-            <div class="md:w-1/2 flex justify-center md:justify-end">
-                <img src="logo-busnardo-3d.png" alt="Logo 3D Busnardo" class="max-w-xs md:max-w-md lg:max-w-lg shadow-2xl rounded-xl">
-            </div>
+        <div class="text-center py-10" th:if="${#lists.isEmpty(produtos)}">
+            <p class="text-gray-600 text-lg">Nenhum produto cadastrado ainda.</p>
         </div>
-    </section>
-
-    <section class="bg-white py-12">
-        <div class="container mx-auto px-4">
-            <div th:if="${successMessage}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
-                <strong class="font-bold">Sucesso!</strong>
-                <span class="block sm:inline" th:text="${successMessage}"></span>
-            </div>
-            <div th:if="${errorMessage}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
-                <strong class="font-bold">Erro!</strong>
-                <span class="block sm:inline" th:text="${errorMessage}"></span>
-            </div>
-
-            <div class="flex flex-col md:flex-row items-center md:justify-between mb-8">
-                <div class="text-center md:text-left">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Nossos Doces</h2>
-                    <p class="text-gray-600">Uma seleção irresistível de doces.</p>
-                </div>
-                <div class="flex items-center space-x-4 mt-4 md:mt-0">
-                    <button class="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors">Saiba Mais</button>
+    </div>
+</section>
+<section class="bg-pink-50 py-12">
+    <div class="container mx-auto px-4">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Nossos Destaques</h2>
+        <p class="text-gray-600 mb-8">Doces mais procurados pelos nossos clientes.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="flex items-center space-x-4">
+                <img src="doces/bala-chocolate.jpg" alt="Bala de Chocolate" class="w-16 h-16 rounded-full object-cover">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Bala de Chocolate</h3>
+                    <p class="text-pink-600 font-bold">R$ 20,00</p>
                 </div>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" th:if="${not #lists.isEmpty(produtos)}">
-
-                <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col" th:each="produto : ${produtos}">
-
-                    <img th:src="@{${produto.caminhoImagem}}" alt="Imagem do Produto" class="w-full h-48 object-cover">
-
-                    <div class="p-4 flex-grow">
-                        <h3 class="text-lg font-semibold text-gray-800" th:text="${produto.nome}">Nome do Produto</h3>
-                        <p class="text-sm text-gray-600" th:text="${produto.descricao}">Descrição do produto.</p>
-                        <p class="mt-2 text-xl font-bold text-pink-600"
-                           th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}">
-                            R$ 0,00
-                        </p>
-                    </div>
-
-                    <div sec:authorize="isAuthenticated()" class="flex justify-around p-3 bg-gray-50 border-t">
-                        <a th:href="@{/editar-produto/{id}(id=${produto.id})}"
-                           class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                            Editar
-                        </a>
-                        <form th:action="@{/excluir-produto/{id}(id=${produto.id})}"
-                              method="POST"
-                              onsubmit="return confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.');">
-                            <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors bg-transparent border-none">
-                                Excluir
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="text-center py-10" th:if="${#lists.isEmpty(produtos)}">
-                <p class="text-gray-600 text-lg">Nenhum produto cadastrado ainda.</p>
-            </div>
-
-            <div class="my-12">
-                <img src="loja.jpg" alt="Interior da Loja Busnardo" class="w-full h-auto rounded-lg shadow-xl">
-                <div class="p-4 text-center">
-                    <p class="text-xl font-semibold text-gray-800">Tubo-Cor</p>
-                    <p class="text-lg font-bold text-pink-600">R$ 25,00</p>
+            <div class="flex items-center space-x-4">
+                <img src="doces/cupcake-morango.jpg" alt="Cupcake de Morango" class="w-16 h-16 rounded-full object-cover">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Cupcake de Morango</h3>
+                    <p class="text-pink-600 font-bold">R$ 6,00</p>
                 </div>
             </div>
         </div>
-    </section>
-
-    <section class="bg-pink-50 py-12">
-        <div class="container mx-auto px-4">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">O que estão dizendo</h2>
-            <p class="text-gray-600 mb-8">Revisões de clientes reais para ajudar você a escolher!</p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <p class="text-yellow-500 text-lg mb-2">★★★★★</p>
-                    <p class="text-gray-700 text-sm italic">"Os doces são frescos e de ótima qualidade. Recomendo muito!"</p>
-                    <p class="mt-4 font-semibold text-gray-800">- Ana</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <p class="text-yellow-500 text-lg mb-2">★★★★★</p>
-                    <p class="text-gray-700 text-sm italic">"Sempre compro aqui, as novidades são ótimas e a entrega é super rápida."</p>
-                    <p class="mt-4 font-semibold text-gray-800">- José</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <p class="text-yellow-500 text-lg mb-2">★★★★★</p>
-                    <p class="text-gray-700 text-sm italic">"Comprei para a festa de aniversário da minha filha. Todos amaram."</p>
-                    <p class="mt-4 font-semibold text-gray-800">- Carla</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <p class="text-yellow-500 text-lg mb-2">★★★★★</p>
-                    <p class="text-gray-700 text-sm italic">"Preço justo e muita variedade. Com certeza voltarei a comprar."</p>
-                    <p class="mt-4 font-semibold text-gray-800">- Paulo</p>
-                </div>
-            </div>
+    </div>
+</section>
+<footer class="bg-gray-100 py-6">
+    <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
+        <div class="flex flex-col sm:flex-row justify-center items-center sm:space-x-4 space-y-2 sm:space-y-0 mb-2">
+            <a href="#" class="hover:underline">Termos de Uso</a>
+            <span class="hidden sm:inline">|</span>
+            <a href="#" class="hover:underline">Política de Privacidade</a>
         </div>
-    </section>
-
-    <section class="bg-white py-12">
-        <div class="container mx-auto px-4">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Nossos Destaques</h2>
-            <p class="text-gray-600 mb-8">Doces mais vendidos e avaliados pelos nossos clientes.</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="flex items-center space-x-4">
-                    <img src="doces/bala-chocolate.jpg" alt="Bala de Chocolate" class="w-16 h-16 rounded-full object-cover">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800">Bala de Chocolate</h3>
-                        <p class="text-pink-600 font-bold">R$ 20,00</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <img src="doces/cupcake-morango.jpg" alt="Cupcake de Morango" class="w-16 h-16 rounded-full object-cover">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800">Cupcake de Morango</h3>
-                        <p class="text-pink-600 font-bold">R$ 6,00</p>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-8 text-center text-gray-500 text-sm">
-                <span>Vendedor líder em sua área.</span>
-            </div>
-        </div>
-    </section>
-
-    <footer class="bg-gray-100 py-6">
-        <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
-            <div class="flex flex-col sm:flex-row justify-center items-center sm:space-x-4 space-y-2 sm:space-y-0 mb-2">
-                <a href="#" class="hover:underline">Termos de Uso</a>
-                <span class="hidden sm:inline">|</span>
-                <a href="#" class="hover:underline">Política de Privacidade</a>
-            </div>
-            <p class="my-2">Redes Sociais: Facebook, Instagram</p>
-            <p>&copy; 2023 Doces Busnardo. Todos os direitos reservados.</p>
-        </div>
-    </footer>
+        <p class="my-2">Redes Sociais: Facebook, Instagram</p>
+        <p>&copy; 2023 Doces Busnardo. Todos os direitos reservados.</p>
+    </div>
+</footer>
 </body>
 </html>

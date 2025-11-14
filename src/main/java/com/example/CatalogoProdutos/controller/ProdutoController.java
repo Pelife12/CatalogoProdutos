@@ -2,7 +2,12 @@ package com.example.CatalogoProdutos.controller;
 
 import com.example.CatalogoProdutos.model.Produto;
 import com.example.CatalogoProdutos.repository.ProdutoRepository;
+import com.example.CatalogoProdutos.service.PdfGenerationService;
+import com.lowagie.text.DocumentException;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,24 +21,29 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
 public class ProdutoController {
 
-    private static final String UPLOAD_DIR = "src/main/resources/static/imagens/produtos/";
+    @Value("${app.upload.path.src}")
+    private String uploadDirSrc;
+
+    @Value("${app.upload.path.target}")
+    private String uploadDirTarget;
 
     @Autowired
     private ProdutoRepository produtoRepository;
 
+    @Autowired
+    private PdfGenerationService pdfGenerationService;
+
     @GetMapping("/cadastro-produto")
     public String exibirFormularioCadastro(Model model) {
         model.addAttribute("produto", new Produto());
-
         model.addAttribute("pageTitle", "Cadastro de Produto");
-
         model.addAttribute("formAction", "/salvar-produto");
-
         return "cadastroProduto";
     }
 
@@ -44,11 +54,8 @@ public class ProdutoController {
                     .orElseThrow(() -> new IllegalArgumentException("Produto inválido:" + id));
 
             model.addAttribute("produto", produto);
-
             model.addAttribute("pageTitle", "Editar Produto");
-
             model.addAttribute("formAction", "/salvar-produto");
-
             return "cadastroProduto";
 
         } catch (Exception e) {
@@ -74,7 +81,6 @@ public class ProdutoController {
             if (id == null) {
                 produto = new Produto();
                 successMessage = "Produto cadastrado com sucesso!";
-
                 if (imagem.isEmpty()) {
                     redirectAttributes.addFlashAttribute("errorMessage", "A imagem do produto é obrigatória.");
                     return "redirect:/cadastro-produto";
@@ -93,24 +99,28 @@ public class ProdutoController {
             if (!imagem.isEmpty()) {
                 if (id != null && produto.getCaminhoImagem() != null && !produto.getCaminhoImagem().isEmpty()) {
                     String nomeImagemAntiga = produto.getCaminhoImagem().replace("/imagens/produtos/", "");
-                    Path caminhoImagemAntiga = Paths.get(UPLOAD_DIR + nomeImagemAntiga);
-                    if (Files.exists(caminhoImagemAntiga)) {
-                        Files.deleteIfExists(caminhoImagemAntiga);
-                    }
+                    Files.deleteIfExists(Paths.get(uploadDirSrc + nomeImagemAntiga));
+                    Files.deleteIfExists(Paths.get(uploadDirTarget + nomeImagemAntiga));
                 }
 
-                Path uploadPath = Paths.get(UPLOAD_DIR);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
                 String nomeArquivoUnico = UUID.randomUUID().toString() + "_" + imagem.getOriginalFilename();
-                Path caminhoArquivo = uploadPath.resolve(nomeArquivoUnico);
-                Files.copy(imagem.getInputStream(), caminhoArquivo);
+                Path uploadPathSrc = Paths.get(uploadDirSrc);
+                Path uploadPathTarget = Paths.get(uploadDirTarget);
+
+                Files.createDirectories(uploadPathSrc);
+                Files.createDirectories(uploadPathTarget);
+
+                Path caminhoArquivoSrc = uploadPathSrc.resolve(nomeArquivoUnico);
+                Path caminhoArquivoTarget = uploadPathTarget.resolve(nomeArquivoUnico);
+
+                byte[] bytes = imagem.getBytes();
+                Files.write(caminhoArquivoSrc, bytes);
+                Files.write(caminhoArquivoTarget, bytes);
+
                 produto.setCaminhoImagem("/imagens/produtos/" + nomeArquivoUnico);
             }
 
             produtoRepository.save(produto);
-
             redirectAttributes.addFlashAttribute("successMessage", successMessage);
             return "redirect:/index";
 
@@ -129,6 +139,7 @@ public class ProdutoController {
         }
     }
 
+
     @PostMapping("/excluir-produto/{id}")
     public String excluirProduto(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -137,11 +148,9 @@ public class ProdutoController {
 
             if (produto.getCaminhoImagem() != null && !produto.getCaminhoImagem().isEmpty()) {
                 String nomeImagem = produto.getCaminhoImagem().replace("/imagens/produtos/", "");
-                Path caminhoImagem = Paths.get(UPLOAD_DIR + nomeImagem);
 
-                if (Files.exists(caminhoImagem)) {
-                    Files.deleteIfExists(caminhoImagem);
-                }
+                Files.deleteIfExists(Paths.get(uploadDirSrc + nomeImagem));
+                Files.deleteIfExists(Paths.get(uploadDirTarget + nomeImagem));
             }
 
             produtoRepository.delete(produto);
@@ -153,5 +162,11 @@ public class ProdutoController {
         }
 
         return "redirect:/index";
+    }
+
+    @GetMapping("/exportar/pdf")
+    public void exportarPdf(HttpServletResponse response) throws IOException, DocumentException {
+        List<Produto> produtos = produtoRepository.findAll();
+        pdfGenerationService.exportarProdutos(response, produtos, uploadDirSrc);
     }
 }
