@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.util.List;
@@ -27,10 +28,19 @@ public class LoginController {
     }
 
     @GetMapping("/index")
-    public String paginaHome(Model model) {
-        List<Produto> produtos = produtoRepository.findAll();
+    public String paginaHome(Model model, @RequestParam(value = "keyword", required = false) String keyword) {
+        List<Produto> produtos;
+
+        if (keyword != null && !keyword.isEmpty()) {
+            // Se houver pesquisa, busca pelo nome
+            produtos = produtoRepository.findByNomeContainingIgnoreCase(keyword);
+        } else {
+            // Se não houver pesquisa, traz todos
+            produtos = produtoRepository.findAll();
+        }
 
         model.addAttribute("produtos", produtos);
+        model.addAttribute("keyword", keyword);
 
         return "index";
     }
