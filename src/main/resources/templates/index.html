@@ -90,7 +90,10 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" th:if="${not #lists.isEmpty(produtos)}">
-                <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col" th:each="produto : ${produtos}">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative" th:each="produto : ${produtos}">
+                    <div th:if="${produto.desconto != null && produto.desconto > 0}" class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm z-10">
+                        <span th:text="'-' + ${produto.desconto} + '%'"></span>
+                    </div>
                     <img th:if="${produto.caminhoImagem != null}"
                          th:src="@{${produto.caminhoImagem}}"
                          alt="Imagem do Produto"
@@ -102,10 +105,15 @@
                     <div class="p-4 flex-grow">
                         <h3 class="text-lg font-semibold text-gray-800" th:text="${produto.nome}">Nome do Produto</h3>
                         <p class="text-sm text-gray-600" th:text="${produto.descricao}">Descrição do produto.</p>
-                        <p class="mt-2 text-xl font-bold text-pink-600"
-                           th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}">
-                            R$ 0,00
-                        </p>
+                        <div class="mt-2">
+                            <div th:if="${produto.desconto != null && produto.desconto > 0}">
+                                <span class="text-xs text-gray-400 line-through block" th:text="'De: R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}"></span>
+                                <span class="text-xl font-bold text-pink-600 block" th:text="'Por: R$ ' + ${#numbers.formatDecimal(produto.precoComDesconto, 1, 'POINT', 2, 'COMMA')}"></span>
+                            </div>
+                            <div th:unless="${produto.desconto != null && produto.desconto > 0}">
+                                <p class="text-xl font-bold text-pink-600" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</p>
+                            </div>
+                        </div>
                     </div>
                     <div sec:authorize="isAuthenticated()" class="flex justify-around p-3 bg-gray-50 border-t">
                         <a th:href="@{/editar-produto/{id}(id=${produto.id})}"
@@ -133,21 +141,27 @@
             <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Nossos Destaques</h2>
             <p class="text-gray-600 mb-8">Doces mais procurados pelos nossos clientes.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm" th:each="destaque : ${destaques}">
+                <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm relative" th:each="destaque : ${destaques}">
+                    <div th:if="${destaque.desconto != null && destaque.desconto > 0}" class="absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-10">
+                        <span th:text="'-' + ${destaque.desconto} + '%'"></span>
+                    </div>
                     <img th:if="${destaque.caminhoImagem != null}"
                          th:src="@{${destaque.caminhoImagem}}"
                          alt="Imagem Destaque"
-                         class="w-16 h-16 rounded-full object-cover border-2 border-pink-200">
+                         class="w-16 h-16 rounded-full object-cover border-2 border-pink-200 flex-shrink-0">
                     <div th:if="${destaque.caminhoImagem == null}"
-                         class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-pink-200">
+                         class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-pink-200 flex-shrink-0">
                         <span class="text-xs text-gray-500">Foto</span>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800" th:text="${destaque.nome}">Nome Destaque</h3>
-                        <p class="text-pink-600 font-bold"
-                           th:text="'R$ ' + ${#numbers.formatDecimal(destaque.preco, 1, 'POINT', 2, 'COMMA')}">
-                            R$ 0,00
-                        </p>
+                    <div class="flex-grow">
+                        <h3 class="text-sm font-semibold text-gray-800 leading-tight mb-1" th:text="${destaque.nome}">Nome Destaque</h3>
+                        <div th:if="${destaque.desconto != null && destaque.desconto > 0}">
+                            <span class="text-[10px] text-gray-400 line-through block" th:text="'De: R$ ' + ${#numbers.formatDecimal(destaque.preco, 1, 'POINT', 2, 'COMMA')}"></span>
+                            <span class="text-sm font-bold text-pink-600 block" th:text="'Por: R$ ' + ${#numbers.formatDecimal(destaque.precoComDesconto, 1, 'POINT', 2, 'COMMA')}"></span>
+                        </div>
+                        <div th:unless="${destaque.desconto != null && destaque.desconto > 0}">
+                            <p class="text-sm text-pink-600 font-bold" th:text="'R$ ' + ${#numbers.formatDecimal(destaque.preco, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</p>
+                        </div>
                     </div>
                 </div>
             </div>

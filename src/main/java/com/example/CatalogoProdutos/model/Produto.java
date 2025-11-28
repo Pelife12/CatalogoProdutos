@@ -34,4 +34,11 @@ public class Produto {
     private String caminhoImagem;
 
     private Integer popularidade = 0;
+
+    public Double getPrecoComDesconto() {
+        if (this.desconto == null || this.desconto <= 0) {
+            return this.preco;
+        }
+        return this.preco - (this.preco * this.desconto / 100.0);
+    }
 }
