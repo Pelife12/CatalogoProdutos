@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.awt.Color;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -60,7 +61,6 @@ public class PdfGenerationService {
     }
 
     private PdfPCell createProductCard(Produto produto, String uploadDir) throws IOException, BadElementException {
-
         PdfPTable cardTable = new PdfPTable(1);
         cardTable.setWidthPercentage(100);
 
@@ -72,16 +72,22 @@ public class PdfGenerationService {
         cardContent.setHorizontalAlignment(Element.ALIGN_CENTER);
 
         try {
-            String nomeImagem = produto.getCaminhoImagem().replace("/imagens/produtos/", "");
-            String imagePath = uploadDir + nomeImagem;
+            if (produto.getCaminhoImagem() != null) {
+                String nomeImagem = produto.getCaminhoImagem().replace("/imagens/produtos/", "");
 
-            if (Files.exists(Paths.get(imagePath))) {
-                Image img = Image.getInstance(imagePath);
-                img.scaleToFit(140, 140);
-                img.setAlignment(Element.ALIGN_CENTER);
-                cardContent.addElement(img);
+                Path path = Paths.get(uploadDir).resolve(nomeImagem);
+                String imagePath = path.toAbsolutePath().toString();
+
+                if (Files.exists(path)) {
+                    Image img = Image.getInstance(imagePath);
+                    img.scaleToFit(140, 140);
+                    img.setAlignment(Element.ALIGN_CENTER);
+                    cardContent.addElement(img);
+                } else {
+                    throw new IOException("Arquivo não encontrado: " + imagePath);
+                }
             } else {
-                throw new IOException("Ficheiro não encontrado: " + imagePath);
+                throw new Exception("Caminho nulo");
             }
         } catch (Exception e) {
             Paragraph placeholder = new Paragraph("Imagem indisponível", FONT_PLACEHOLDER);

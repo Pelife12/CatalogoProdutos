@@ -5,15 +5,11 @@ import com.example.CatalogoProdutos.repository.ProdutoRepository;
 import com.example.CatalogoProdutos.service.PdfGenerationService;
 import com.lowagie.text.DocumentException;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -27,11 +23,8 @@ import java.util.UUID;
 @Controller
 public class ProdutoController {
 
-    @Value("${app.upload.path.src}")
-    private String uploadDirSrc;
-
-    @Value("${app.upload.path.target}")
-    private String uploadDirTarget;
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     @Autowired
     private ProdutoRepository produtoRepository;
@@ -99,23 +92,19 @@ public class ProdutoController {
             if (!imagem.isEmpty()) {
                 if (id != null && produto.getCaminhoImagem() != null && !produto.getCaminhoImagem().isEmpty()) {
                     String nomeImagemAntiga = produto.getCaminhoImagem().replace("/imagens/produtos/", "");
-                    Files.deleteIfExists(Paths.get(uploadDirSrc + nomeImagemAntiga));
-                    Files.deleteIfExists(Paths.get(uploadDirTarget + nomeImagemAntiga));
+                    Path caminhoAntigo = Paths.get(uploadDir).resolve(nomeImagemAntiga);
+                    Files.deleteIfExists(caminhoAntigo);
                 }
 
                 String nomeArquivoUnico = UUID.randomUUID().toString() + "_" + imagem.getOriginalFilename();
-                Path uploadPathSrc = Paths.get(uploadDirSrc);
-                Path uploadPathTarget = Paths.get(uploadDirTarget);
 
-                Files.createDirectories(uploadPathSrc);
-                Files.createDirectories(uploadPathTarget);
+                Path uploadPath = Paths.get(uploadDir);
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
 
-                Path caminhoArquivoSrc = uploadPathSrc.resolve(nomeArquivoUnico);
-                Path caminhoArquivoTarget = uploadPathTarget.resolve(nomeArquivoUnico);
-
-                byte[] bytes = imagem.getBytes();
-                Files.write(caminhoArquivoSrc, bytes);
-                Files.write(caminhoArquivoTarget, bytes);
+                Path caminhoArquivo = uploadPath.resolve(nomeArquivoUnico);
+                Files.write(caminhoArquivo, imagem.getBytes());
 
                 produto.setCaminhoImagem("/imagens/produtos/" + nomeArquivoUnico);
             }
@@ -148,9 +137,8 @@ public class ProdutoController {
 
             if (produto.getCaminhoImagem() != null && !produto.getCaminhoImagem().isEmpty()) {
                 String nomeImagem = produto.getCaminhoImagem().replace("/imagens/produtos/", "");
-
-                Files.deleteIfExists(Paths.get(uploadDirSrc + nomeImagem));
-                Files.deleteIfExists(Paths.get(uploadDirTarget + nomeImagem));
+                Path caminhoImagem = Paths.get(uploadDir).resolve(nomeImagem);
+                Files.deleteIfExists(caminhoImagem);
             }
 
             produtoRepository.delete(produto);
@@ -167,6 +155,6 @@ public class ProdutoController {
     @GetMapping("/exportar/pdf")
     public void exportarPdf(HttpServletResponse response) throws IOException, DocumentException {
         List<Produto> produtos = produtoRepository.findAll();
-        pdfGenerationService.exportarProdutos(response, produtos, uploadDirSrc);
+        pdfGenerationService.exportarProdutos(response, produtos, uploadDir);
     }
 }
