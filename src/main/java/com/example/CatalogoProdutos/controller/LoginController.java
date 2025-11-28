@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
@@ -47,7 +50,6 @@ public class LoginController {
 
         List<Produto> destaques = produtoRepository.findTop4ByOrderByPopularidadeDesc();
         model.addAttribute("destaques", destaques);
-
         model.addAttribute("produtos", produtos);
         model.addAttribute("keyword", keyword);
 
@@ -57,13 +59,33 @@ public class LoginController {
     @GetMapping("/perfil")
     public String paginaPerfil(Model model, Principal principal) {
         String emailUsuario = principal.getName();
-
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + emailUsuario));
 
         model.addAttribute("usuario", usuario);
-
         return "perfil";
+    }
+
+    @PostMapping("/salvar-perfil")
+    public String salvarPerfil(@ModelAttribute Usuario usuarioForm, Principal principal, RedirectAttributes redirectAttributes) {
+        try {
+            String emailLogado = principal.getName();
+            Usuario usuarioBanco = usuarioRepository.findByEmail(emailLogado)
+                    .orElseThrow(() -> new IllegalArgumentException("Erro ao localizar usuário"));
+
+            usuarioBanco.setNome(usuarioForm.getNome());
+            usuarioBanco.setTelefone(usuarioForm.getTelefone());
+            usuarioBanco.setCpf(usuarioForm.getCpf());
+
+            usuarioRepository.save(usuarioBanco);
+            redirectAttributes.addFlashAttribute("successMessage", "Perfil atualizado com sucesso!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro ao atualizar.");
+        }
+
+        return "redirect:/perfil";
     }
 
     @GetMapping("/")
