@@ -32,12 +32,21 @@ public class LoginController {
         List<Produto> produtos;
 
         if (keyword != null && !keyword.isEmpty()) {
-            // Se houver pesquisa, busca pelo nome
             produtos = produtoRepository.findByNomeContainingIgnoreCase(keyword);
+
+            for (Produto produto : produtos) {
+                if (produto.getPopularidade() == null) {
+                    produto.setPopularidade(0);
+                }
+                produto.setPopularidade(produto.getPopularidade() + 1);
+                produtoRepository.save(produto);
+            }
         } else {
-            // Se não houver pesquisa, traz todos
             produtos = produtoRepository.findAll();
         }
+
+        List<Produto> destaques = produtoRepository.findTop4ByOrderByPopularidadeDesc();
+        model.addAttribute("destaques", destaques);
 
         model.addAttribute("produtos", produtos);
         model.addAttribute("keyword", keyword);

@@ -32,4 +32,6 @@ public class Produto {
 
     @Column(name = "caminho_imagem")
     private String caminhoImagem;
+
+    private Integer popularidade = 0;
 }
